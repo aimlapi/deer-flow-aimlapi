@@ -121,6 +121,41 @@ def with_thinking_support(provider: LLMProvider, supports_thinking: bool) -> LLM
 
 LLM_PROVIDERS: list[LLMProvider] = [
     LLMProvider(
+        name="aimlapi",
+        display_name="aimlapi.com",
+        description="OpenAI-compatible gateway, 350+ chat models behind one key",
+        use="langchain_openai:ChatOpenAI",
+        models=[
+            "openai/gpt-5-5",
+            "anthropic/claude-sonnet-4.6",
+            "google/gemini-2.5-flash",
+            "deepseek/deepseek-chat",
+        ],
+        default_model="openai/gpt-5-5",
+        env_var="AIMLAPI_API_KEY",
+        package="langchain-openai",
+        extra_config={
+            "base_url": "https://api.aimlapi.com/v1",
+            "request_timeout": 600.0,
+            "max_retries": 2,
+            "max_tokens": 8192,
+            "temperature": 0.7,
+            "supports_vision": True,
+            # Identifies DeerFlow as the calling app. Lives in this provider's
+            # extra_config (not in a shared default) so it can only ever ride a
+            # request to base_url above — the wizard writes it onto this model
+            # entry alone, and the factory forwards default_headers verbatim.
+            "default_headers": {
+                "HTTP-Referer": "https://github.com/bytedance/deer-flow",
+                "X-Title": "DeerFlow",
+                "X-AIMLAPI-Partner-ID": "part_deerflow",
+                "X-AIMLAPI-Source": "agent/deer-flow",
+            },
+        },
+        # deepseek-chat is text-only on this gateway; the other three take images.
+        model_vision_overrides={"deepseek/deepseek-chat": False},
+    ),
+    LLMProvider(
         name="volcengine",
         display_name="Volcengine Doubao",
         description="Doubao Seed with thinking support",
@@ -497,41 +532,6 @@ LLM_PROVIDERS: list[LLMProvider] = [
             "max_tokens": 8192,
             "temperature": 0.7,
         },
-    ),
-    LLMProvider(
-        name="aimlapi",
-        display_name="aimlapi.com",
-        description="OpenAI-compatible gateway, 350+ chat models behind one key",
-        use="langchain_openai:ChatOpenAI",
-        models=[
-            "openai/gpt-5-5",
-            "anthropic/claude-sonnet-4.6",
-            "google/gemini-2.5-flash",
-            "deepseek/deepseek-chat",
-        ],
-        default_model="openai/gpt-5-5",
-        env_var="AIMLAPI_API_KEY",
-        package="langchain-openai",
-        extra_config={
-            "base_url": "https://api.aimlapi.com/v1",
-            "request_timeout": 600.0,
-            "max_retries": 2,
-            "max_tokens": 8192,
-            "temperature": 0.7,
-            "supports_vision": True,
-            # Identifies DeerFlow as the calling app. Lives in this provider's
-            # extra_config (not in a shared default) so it can only ever ride a
-            # request to base_url above — the wizard writes it onto this model
-            # entry alone, and the factory forwards default_headers verbatim.
-            "default_headers": {
-                "HTTP-Referer": "https://github.com/bytedance/deer-flow",
-                "X-Title": "DeerFlow",
-                "X-AIMLAPI-Partner-ID": "part_deerflow",
-                "X-AIMLAPI-Source": "agent/deer-flow",
-            },
-        },
-        # deepseek-chat is text-only on this gateway; the other three take images.
-        model_vision_overrides={"deepseek/deepseek-chat": False},
     ),
     LLMProvider(
         name="vllm",
