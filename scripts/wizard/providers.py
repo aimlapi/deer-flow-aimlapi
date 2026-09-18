@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field, replace
 
 
@@ -35,13 +36,7 @@ class LLMProvider:
 
         Does not mutate the shared provider-level ``extra_config``.
         """
-        config = dict(self.extra_config)
-        # ``dict()`` is shallow, so a nested header map would still be the shared
-        # provider-level object and a caller editing it would rewrite the provider
-        # definition for every later wizard run. Copy it so the docstring's promise
-        # holds for nested values too.
-        if isinstance(config.get("default_headers"), dict):
-            config["default_headers"] = dict(config["default_headers"])
+        config = copy.deepcopy(self.extra_config)
         if model_name in self.model_vision_overrides:
             config["supports_vision"] = self.model_vision_overrides[model_name]
         return config
@@ -519,7 +514,9 @@ LLM_PROVIDERS: list[LLMProvider] = [
             "max_tokens": 8192,
             "temperature": 0.7,
             "supports_vision": True,
-            # Identifies DeerFlow as the calling app. Lives in this provider's
+            # Optional attribution: tells aimlapi.com the request came from
+            # DeerFlow. Not needed for the integration to work; a user can delete
+            # the block from the generated config. Lives in this provider's
             # extra_config (not in a shared default) so it can only ever ride a
             # request to base_url above — the wizard writes it onto this model
             # entry alone, and the factory forwards default_headers verbatim.

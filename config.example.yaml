@@ -647,11 +647,11 @@ models:
   # (openai/gpt-5-5, anthropic/claude-sonnet-4.6); browse them at
   # https://api.aimlapi.com/v1/models — the response is {"object":"list","data":[...]}
   # and chat models are the entries whose "type" is "openai/chat-completions".
-  # Prefer the dotted spelling of a version (anthropic/claude-sonnet-4.6, not
-  # anthropic/claude-sonnet-4-6): both route, but only the dotted id currently
-  # publishes its capability flags.
-  # default_headers identifies DeerFlow to the gateway; it is per-model, so it
-  # never travels to another provider's base_url.
+  # default_headers is optional: it tells aimlapi.com that the request came from
+  # DeerFlow (X-AIMLAPI-Partner-ID / X-AIMLAPI-Source are that gateway's
+  # attribution fields). Nothing breaks without it — delete the block if you
+  # would rather not send it. It is per-model, so it never travels to another
+  # provider's base_url.
   # - name: aimlapi-gpt-5-5
   #   display_name: GPT-5.5 (aimlapi.com)
   #   use: langchain_openai:ChatOpenAI
@@ -670,7 +670,10 @@ models:
   #     X-AIMLAPI-Source: agent/deer-flow
   #
   # For a reasoning model on aimlapi.com use the patched OpenAI-compatible
-  # adapter, so reasoning_content is replayed across multi-turn tool calls:
+  # adapter, so reasoning_content is replayed across multi-turn tool calls.
+  # On this gateway thinking is switched with reasoning_effort (the Anthropic
+  # `thinking` block is ignored on /chat/completions), so the toggle maps to it;
+  # `none` is the value the gateway accepts for off (`minimal` is rejected).
   # - name: aimlapi-claude-sonnet-4-6
   #   display_name: Claude Sonnet 4.6 (aimlapi.com)
   #   use: deerflow.models.patched_openai:PatchedChatOpenAI
@@ -683,6 +686,11 @@ models:
   #   temperature: 0.7
   #   supports_vision: true
   #   supports_thinking: true
+  #   supports_reasoning_effort: true
+  #   when_thinking_enabled:
+  #     reasoning_effort: medium
+  #   when_thinking_disabled:
+  #     reasoning_effort: none
   #   default_headers:
   #     HTTP-Referer: https://github.com/bytedance/deer-flow
   #     X-Title: DeerFlow
